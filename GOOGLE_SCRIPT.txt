@@ -1,0 +1,78 @@
+function doGet(e) {
+  return datasheet(e);
+}
+
+function doPost(e) {
+  return datasheet(e);
+}
+
+function datasheet(e){
+  var ss = SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName(e.parameter.SH); 
+  
+  //SIMPAN DATA ABSEN
+  if (e.parameter.func == "Simpan") {
+    var nis = e.parameter.NIS;
+    var nama = e.parameter.NAMA;
+    var kelas = e.parameter.KELAS;
+    var jur = e.parameter.JURUSAN;
+    //var tgl = e.parameter.TGL;
+    //var jam = e.parameter.JAM;
+    var ket = e.parameter.KET;
+    var tgl = Utilities.formatDate (new Date (), SpreadsheetApp.getActiveSpreadsheet (). getSpreadsheetTimeZone (), "dd/MM/yyyy");
+    var jam = Utilities.formatDate (new Date (), SpreadsheetApp.getActiveSpreadsheet (). getSpreadsheetTimeZone (), "HH:mm:ss");
+ 
+    
+    var data=false;
+    var lr= sh.getLastRow();
+    for(var i=1;i<=lr;i++){
+      sh.getRange(i,5).setNumberFormat('@STRING@');
+      var data_nis = sh.getRange(i, 1).getValue();
+      var data_tgl = sh.getRange(i, 5).getValue();
+      if((data_nis==nis) && (data_tgl==tgl)){      //jika data NIS dan tgl sudah ada akan ditolak
+        data=true;
+      } 
+    }
+    if (data){
+      var result= "Hari ini Sudah ABSEN";
+    }else{
+      var rowData = sh.appendRow([nis,nama,kelas,jur,tgl,jam,ket]);  
+      var result="ABSEN SUKSES";
+    }
+    return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.TEXT);
+  }
+  
+  //UBAH DATA PASSWORD SISWA
+   if (e.parameter.func == "UBAH") {
+    var nis = e.parameter.NIS;
+    var pass = e.parameter.PASS; 
+     
+    var lr= sh.getLastRow();
+    for(var i=1;i<=lr;i++){
+      var data_nis = sh.getRange(i, 1).getValue();
+      if(data_nis==nis){
+       sh.getRange(i, 5).setValue(pass);
+        
+        return ContentService.createTextOutput("Data Berhasil diDaftar").setMimeType(ContentService.MimeType.TEXT);
+      } 
+    }     
+  } 
+  
+   //BACA DATA
+   if (e.parameter.func == "BACA") {
+    var rg=sh.getDataRange().getValues();
+    var nis = e.parameter.NIS;
+    
+    var data="";
+    for(var row=1;row<rg.length;++row){
+       //var data_nis = sh.getRange(i, 1).getValue();
+       //if (data_nis==nis){        //akan menampilkan data NIS tertentu
+       data +=rg[row].join(',')+'\n';
+       //}
+    }
+     
+    return ContentService.createTextOutput(data).setMimeType(ContentService.MimeType.TEXT);
+  }
+  
+}
+
